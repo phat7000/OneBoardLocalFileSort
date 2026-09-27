@@ -141,8 +141,7 @@ TEST_CASE("project protection can be disabled for raw scanner traversal") {
     }));
 }
 
-#ifndef _WIN32
-TEST_CASE("cloud compatibility providers skip recursive symlink traversal") {
+TEST_CASE("recursive scans skip symlink and reparse-point traversal") {
     TempDir temp_dir;
     const auto real_dir = temp_dir.path() / "real";
     const auto link_dir = temp_dir.path() / "linked";
@@ -154,18 +153,14 @@ TEST_CASE("cloud compatibility providers skip recursive symlink traversal") {
         SKIP("symlink creation is not available in this test environment");
     }
 
-    CloudCompatibilityProvider provider(
-        "onedrive",
-        "OneDrive",
-        std::vector<std::string>{"onedrive"});
-    const auto entries = provider.list_directory(
+    FileScanner scanner;
+    const auto entries = scanner.get_directory_entries(
         temp_dir.path().string(),
         FileScanOptions::Files | FileScanOptions::Recursive);
 
     REQUIRE(entries.size() == 1);
     CHECK(entries.front().file_name == "deep.txt");
 }
-#endif
 
 #ifndef _WIN32
 class PermissionRestore {

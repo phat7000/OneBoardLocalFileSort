@@ -468,23 +468,8 @@ bool llm_choice_is_ready(const Settings& settings)
     if (choice == LLMChoice::Unset) {
         return false;
     }
-    if (choice == LLMChoice::Remote_OpenAI) {
-        return !settings.get_openai_api_key().empty()
-            && !settings.get_openai_model().empty();
-    }
-    if (choice == LLMChoice::Remote_Gemini) {
-        return !settings.get_gemini_api_key().empty()
-            && !settings.get_gemini_model().empty();
-    }
-    if (choice == LLMChoice::Remote_Custom) {
-        const auto id = settings.get_active_custom_api_id();
-        if (id.empty()) {
-            return false;
-        }
-        const CustomApiEndpoint endpoint = settings.find_custom_api_endpoint(id);
-        return !endpoint.id.empty()
-            && !endpoint.base_url.empty()
-            && !endpoint.model.empty();
+    if (is_remote_choice(choice)) {
+        return false;
     }
     if (choice == LLMChoice::Custom) {
         const auto id = settings.get_active_custom_llm_id();
@@ -514,10 +499,6 @@ bool ensure_llm_choice(Settings& settings, const std::function<void()>& finish_s
         return false;
     }
 
-    settings.set_openai_api_key(llm_dialog.get_openai_api_key());
-    settings.set_openai_model(llm_dialog.get_openai_model());
-    settings.set_gemini_api_key(llm_dialog.get_gemini_api_key());
-    settings.set_gemini_model(llm_dialog.get_gemini_model());
     settings.set_llm_choice(llm_dialog.get_selected_llm_choice());
     settings.set_llm_downloads_expanded(llm_dialog.get_llm_downloads_expanded());
     settings.set_llm_storage_dir(llm_dialog.get_llm_storage_dir());
@@ -632,7 +613,7 @@ void open_cache_maintenance_later(MainApp& main_app)
 
 void print_app_test_result(const AppTestRunner::Result& result)
 {
-    std::cout << "AI File Sorter self-test suite: " << result.suite << "\n";
+    std::cout << "OneBoard Local File Sort self-test suite: " << result.suite << "\n";
     if (!result.error.empty()) {
         std::cout << "ERROR: " << result.error << "\n";
         return;

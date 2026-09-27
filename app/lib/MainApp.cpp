@@ -621,6 +621,15 @@ MainApp::MainApp(Settings& settings,
       development_prompt_logging_enabled_(development_mode ? settings.get_development_prompt_logging() : false),
       main_window_state_binder_(std::make_unique<MainWindowStateBinder>(*this))
 {
+    // MainApp is also constructed directly by isolated tests and embedders that
+    // may not have called Logger::setup_loggers(). Keep those paths safe while
+    // production continues to use the named rotating loggers.
+    if (!core_logger) {
+        core_logger = spdlog::default_logger();
+    }
+    if (!ui_logger) {
+        ui_logger = spdlog::default_logger();
+    }
     rebuild_storage_provider_registry();
     progress_controller_.set_show_vision_diagnostics(is_development_mode() || is_test_mode());
     TranslationManager::instance().initialize_for_app(qApp, settings.get_language());
@@ -2350,18 +2359,15 @@ void MainApp::refresh_windows_explorer_extension_actions()
 
 void MainApp::record_categorized_metrics(int count)
 {
-    if (test_mode_) {
-        return;
-    }
-    record_categorized_metrics_impl(
-        settings,
-        donation_prompt_active_,
-        count,
-        [this](int total) { return show_support_prompt_dialog(total); });
+    // Do not surface the upstream donation/code workflow in the OneBoard UI.
+    (void)count;
 }
 
 void MainApp::maybe_show_windows_explorer_extension_install_prompt()
 {
+    // OneBoard v1.0.0 does not distribute or download the upstream extension.
+    return;
+#if 0
     if (test_mode_ || windows_explorer_extension_prompt_active_) {
         return;
     }
@@ -2379,7 +2385,7 @@ void MainApp::maybe_show_windows_explorer_extension_install_prompt()
     QMessageBox box(this);
     box.setIcon(QMessageBox::Information);
     box.setWindowTitle(tr("Install Windows Explorer Extension?"));
-    box.setText(tr("Add AI File Sorter actions to the Windows Explorer right-click menu?"));
+    box.setText(tr("Add OneBoard Local File Sort actions to the Windows Explorer right-click menu?"));
     box.setInformativeText(tr("The Windows Explorer Extension lets you categorize and rename files directly from File Explorer."));
     QPushButton* install_button = box.addButton(tr("Install Windows Explorer Extension"),
                                                 QMessageBox::AcceptRole);
@@ -2399,6 +2405,7 @@ void MainApp::maybe_show_windows_explorer_extension_install_prompt()
         open_windows_explorer_extension_install_page();
     }
     windows_explorer_extension_prompt_active_ = false;
+#endif
 }
 
 void MainApp::undo_last_run()
@@ -2478,9 +2485,9 @@ MainApp::SupportPromptResult MainApp::show_support_prompt_dialog(int total_files
     box.setIcon(QMessageBox::Information);
     box.setWindowTitle(QObject::tr("Support %1").arg(app_display_name()));
 
-    const QString headline = tr("Thank you for using AI File Sorter! You have categorized %1 files thus far. I, the author, really hope this app has been useful for you.")
+    const QString headline = tr("Thank you for using OneBoard Local File Sort! You have categorized %1 files thus far. I, the author, really hope this app has been useful for you.")
                                  .arg(total_files);
-    const QString details = tr("AI File Sorter takes hundreds of hours of development, feature work, support replies, and ongoing costs. "
+    const QString details = tr("OneBoard Local File Sort takes hundreds of hours of development, feature work, support replies, and ongoing costs. "
                                "If the app saves you time or brings value, please consider supporting it so it can keep improving.");
     const QString code_note = tr("Already donated? Click \"I have already donated\" to enter your donation code and permanently disable this reminder.");
 
@@ -3374,6 +3381,9 @@ void MainApp::apply_development_logging()
 std::unique_ptr<ILLMClient> MainApp::make_llm_client()
 {
     const LLMChoice choice = settings.get_llm_choice();
+    if (is_remote_choice(choice)) {
+        throw std::runtime_error("Cloud LLM providers are disabled in OneBoard Local File Sort.");
+    }
     const auto handle_local_llm_status = [this](LocalLLMClient::Status status) {
         schedule_backend_status_label_refresh();
         switch (status) {

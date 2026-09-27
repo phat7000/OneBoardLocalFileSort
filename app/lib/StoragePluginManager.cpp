@@ -31,8 +31,16 @@ std::string env_or_default(const char* env_name, const char* fallback)
 
 std::string remote_catalog_url()
 {
+#ifdef AI_FILE_SORTER_TEST_BUILD
+    // Keep the upstream catalog parser/install coverage available to isolated
+    // tests. Production targets do not define AI_FILE_SORTER_TEST_BUILD.
     return env_or_default("AI_FILE_SORTER_STORAGE_PLUGIN_CATALOG_URL",
                           AIFS_STORAGE_PLUGIN_CATALOG_URL);
+#else
+    // OneBoard does not fetch the upstream remote storage-plugin catalog, even
+    // when an old environment override is present.
+    return {};
+#endif
 }
 
 std::filesystem::path resolve_plugin_source_path(const StoragePluginManifest& manifest,

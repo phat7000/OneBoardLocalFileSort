@@ -12,7 +12,7 @@
  * @brief Detects and opens the optional Windows Explorer extension from the main app.
  *
  * This class deliberately does not modify extension settings or registration. The extension
- * remains responsible for connecting itself to an AI File Sorter executable.
+ * remains responsible for connecting itself to an OneBoard Local File Sort executable.
  */
 class ExplorerExtensionManager {
 public:

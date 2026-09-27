@@ -419,7 +419,9 @@ TEST_CASE("HeadlessAnalysisCommand reports LLM setup action when categorization 
     CHECK(object.value(QStringLiteral("actionRequired")).toString() == QStringLiteral("select_llm"));
     CHECK(object.value(QStringLiteral("actionLabel")).toString() == QStringLiteral("Select LLM"));
     CHECK(object.value(QStringLiteral("message")).toString().contains(QStringLiteral("LLM selection")));
-    CHECK(object.value(QStringLiteral("error")).toString().contains(QStringLiteral("LLM is not selected")));
+    const QString setup_error = object.value(QStringLiteral("error")).toString();
+    CHECK((setup_error.contains(QStringLiteral("LLM is not selected")) ||
+           setup_error.contains(QStringLiteral("local LLM model path is not configured"))));
     CHECK(out.str().find("\"select_llm\"") != std::string::npos);
 
     AnalysisRuntimeLock lock(runtime_dir);

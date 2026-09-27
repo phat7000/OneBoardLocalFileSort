@@ -11,7 +11,9 @@
 namespace fs = std::filesystem;
 
 struct FileScannerBehavior {
-    bool skip_reparse_points{false};
+    // Never traverse links/reparse points by default.  Recursive sorting must
+    // remain inside the selected tree and must not follow junction loops.
+    bool skip_reparse_points{true};
     bool protect_project_directories{true};
     std::vector<std::string> additional_junk_names;
     std::vector<std::string> junk_name_prefixes;

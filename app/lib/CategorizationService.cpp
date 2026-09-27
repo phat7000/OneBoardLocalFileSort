@@ -1903,7 +1903,13 @@ std::string CategorizationService::run_llm_with_timeout(
 
 int CategorizationService::resolve_llm_timeout(bool is_local_llm) const
 {
-    int timeout_seconds = is_local_llm ? 60 : 10;
+    // Gemma 3 4B can legitimately need several minutes for a response on
+    // lower-power x64 CPUs.  A one-minute default aborts healthy local
+    // inference and then still has to wait for the worker to finish.  Keep
+    // the remote timeout short, but give local-only OneBoard builds enough
+    // headroom for CPU fallback.  The existing environment override remains
+    // available for developers and unusually slow hardware.
+    int timeout_seconds = is_local_llm ? 900 : 10;
     const char* timeout_env = std::getenv(is_local_llm ? kLocalTimeoutEnv : kRemoteTimeoutEnv);
     if (!is_local_llm && settings.get_llm_choice() == LLMChoice::Remote_Custom) {
         timeout_seconds = 60;

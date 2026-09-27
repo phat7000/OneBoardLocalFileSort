@@ -141,6 +141,35 @@ void apply_download_toggle_style(QToolButton* button)
         .arg(normal, hover, pressed));
 }
 
+bool confirm_local_model_download(QWidget* parent, const QString& model_name)
+{
+#ifdef AI_FILE_SORTER_TEST_BUILD
+    Q_UNUSED(parent);
+    Q_UNUSED(model_name);
+    return true;
+#else
+    QMessageBox consent(parent);
+    consent.setIcon(QMessageBox::Information);
+    consent.setWindowTitle(QObject::tr("Download Local Model"));
+    consent.setTextFormat(Qt::RichText);
+    consent.setText(QObject::tr(
+        "<b>Local AI model:</b> %1<br><br>"
+        "<b>Purpose:</b> Local file categorization and rename suggestions<br><br>"
+        "After download, the model runs locally. Files are not uploaded to OneBoard. "
+        "The download itself requires internet access and may require several GB of disk space. "
+        "The model is provided under its respective provider's license; Gemma models are subject "
+        "to the <a href=\"https://ai.google.dev/gemma/terms\">Gemma Terms of Use</a>.")
+        .arg(model_name.toHtmlEscaped()));
+    consent.setTextInteractionFlags(Qt::TextBrowserInteraction);
+    consent.setStandardButtons(QMessageBox::Cancel);
+    QPushButton* download = consent.addButton(QObject::tr("Download Local Model"),
+                                               QMessageBox::AcceptRole);
+    consent.setDefaultButton(download);
+    consent.exec();
+    return consent.clickedButton() == download;
+#endif
+}
+
 } // namespace
 
 
@@ -192,13 +221,10 @@ LLMSelectionDialog::LLMSelectionDialog(Settings& settings, QWidget* parent)
     selected_custom_api_id = settings.get_active_custom_api_id();
     switch (selected_choice) {
     case LLMChoice::Remote_OpenAI:
-        openai_radio->setChecked(true);
-        break;
     case LLMChoice::Remote_Gemini:
-        gemini_radio->setChecked(true);
-        break;
     case LLMChoice::Remote_Custom:
-        custom_api_radio->setChecked(true);
+        local3_radio->setChecked(true);
+        selected_choice = LLMChoice::Local_4b_Gemma;
         break;
     case LLMChoice::Local_4b_Gemma:
         local3_radio->setChecked(true);
@@ -424,6 +450,21 @@ void LLMSelectionDialog::setup_ui()
     custom_api_layout->addWidget(edit_custom_api_button);
     custom_api_layout->addWidget(delete_custom_api_button);
     custom_api_layout->addStretch(1);
+
+    // OneBoard v1.0.0 is local-only. Keep the upstream widgets instantiated to
+    // minimize merge conflicts, but never expose or enable them in production UI.
+    gemini_radio->setVisible(false);
+    gemini_radio->setEnabled(false);
+    gemini_desc->setVisible(false);
+    gemini_inputs->setVisible(false);
+    openai_radio->setVisible(false);
+    openai_radio->setEnabled(false);
+    openai_desc->setVisible(false);
+    openai_inputs->setVisible(false);
+    custom_api_radio->setVisible(false);
+    custom_api_radio->setEnabled(false);
+    custom_api_desc->setVisible(false);
+    custom_api_row->setVisible(false);
 
     custom_radio = new QRadioButton(
         tr("Custom local LLM (gguf)"), radio_container);
@@ -2170,6 +2211,10 @@ void LLMSelectionDialog::start_download()
 
     if (!Utils::is_network_available()) {
         DialogUtils::show_error_dialog(this, ERR_NO_INTERNET_CONNECTION);
+        return;
+    }
+
+    if (!confirm_local_model_download(this, default_llm_label_for_choice(selected_choice))) {
         return;
     }
 

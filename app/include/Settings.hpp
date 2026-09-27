@@ -681,7 +681,9 @@ private:
     std::filesystem::path config_dir;
     IniConfig config;
 
-    LLMChoice llm_choice = LLMChoice::Unset;
+    // OneBoard is local-only. The recommended local model is selected by default;
+    // first-run readiness still requires an explicit user-approved download.
+    LLMChoice llm_choice = LLMChoice::Local_4b_Gemma;
     std::string openai_api_key;
     std::string openai_model{ "gpt-4o-mini" };
     std::string gemini_api_key;

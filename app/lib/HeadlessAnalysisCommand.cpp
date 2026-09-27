@@ -517,7 +517,7 @@ int finish_analysis_run(const HeadlessAnalysisCommand::Options& options,
             const QJsonObject payload = llm_setup_required_payload();
             emit_status(options,
                         "blocked",
-                        "AI File Sorter needs an LLM selection before this Explorer job can run. "
+                        "OneBoard Local File Sort needs an LLM selection before this Explorer job can run. "
                         "Choose or download an LLM, then run the Explorer action again.",
                         result.error_message,
                         metadata,
@@ -793,13 +793,13 @@ HeadlessAnalysisCommand::ParseResult HeadlessAnalysisCommand::parse(int argc, ch
 
 std::string HeadlessAnalysisCommand::usage_text()
 {
-    return "Usage: aifilesorter --headless --operation <categorize|rename|categorize-and-rename> "
+    return "Usage: OneBoardLocalFileSort --headless --operation <categorize|rename|categorize-and-rename> "
            "--path <file-or-folder> [--path <file-or-folder> ...] "
            "[--status-file <json-file>] [--job-id <id>] "
            "[--review-file <json-file>] [--review-only|--auto-apply] "
            "[--include-subdirectories|--no-include-subdirectories] "
            "[--settings-overrides-file <json-file>]\n"
-           "       aifilesorter --headless-apply --review-file <json-file> "
+           "       OneBoardLocalFileSort --headless-apply --review-file <json-file> "
            "[--status-file <json-file>] [--job-id <id>]\n";
 }
 

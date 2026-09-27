@@ -386,6 +386,7 @@ Language system_default_language()
         case QLocale::Turkish: return Language::Turkish;
         case QLocale::Korean: return Language::Korean;
         case QLocale::Dutch: return Language::Dutch;
+        case QLocale::Vietnamese: return Language::Vietnamese;
         default: return Language::English;
     }
 }
@@ -478,26 +479,28 @@ Settings::Settings()
 LLMChoice Settings::parse_llm_choice() const
 {
     const std::string value = config.getValue("Settings", "LLMChoice", "Unset");
-    if (value == "Remote" || value == "Remote_OpenAI") return LLMChoice::Remote_OpenAI;
-    if (value == "Remote_Gemini") return LLMChoice::Remote_Gemini;
-    if (value == "Remote_Custom") return LLMChoice::Remote_Custom;
+    // Migrate every historical cloud-provider selection to OneBoard's local default.
+    if (value == "Remote" || value == "Remote_OpenAI"
+        || value == "Remote_Gemini" || value == "Remote_Custom"
+        || value == "Unset" || value.empty()) {
+        return LLMChoice::Local_4b_Gemma;
+    }
     if (value == "Local_3b" || value == "Local_4b_Gemma") return LLMChoice::Local_4b_Gemma;
     if (value == "Local_3b_legacy") return LLMChoice::Local_3b_legacy;
     if (value == "Local_7b") return LLMChoice::Local_7b;
     if (value == "Local_7b_Gemma") return LLMChoice::Local_7b_Gemma;
     if (value == "Custom")   return LLMChoice::Custom;
-    return LLMChoice::Unset;
+    return LLMChoice::Local_4b_Gemma;
 }
 
 void Settings::load_basic_settings(const std::function<bool(const char*, bool)>& load_bool,
                                    const std::function<int(const char*, int, int)>& load_int)
 {
     llm_choice = parse_llm_choice();
-    set_openai_api_key(config.getValue("Settings", "RemoteApiKey", ""));
-    set_openai_model(config.getValue("Settings", "RemoteModel", "gpt-4o-mini"));
-    set_gemini_api_key(config.getValue("Settings", "GeminiApiKey", ""));
-    set_gemini_model(config.getValue("Settings", "GeminiModel", "gemini-2.5-flash-lite"));
-    set_remote_requests_per_minute(load_int("RemoteRequestsPerMinute", 0, 0));
+    // Cloud credentials are deliberately ignored by the OneBoard production build.
+    set_openai_api_key("");
+    set_gemini_api_key("");
+    set_remote_requests_per_minute(0);
     llm_downloads_expanded = load_bool("LLMDownloadsExpanded", true);
     set_llm_storage_dir(config.getValue("Settings", "LlmStorageDir", ""));
     visual_model_id = normalize_visual_model_id(
@@ -655,11 +658,11 @@ void Settings::save_core_settings()
     static const std::string settings_section = "Settings";
 
     config.setValue(settings_section, "LLMChoice", llm_choice_to_string(llm_choice));
-    config.setValue(settings_section, "RemoteApiKey", openai_api_key);
-    config.setValue(settings_section, "RemoteModel", openai_model.empty() ? "gpt-4o-mini" : openai_model);
-    config.setValue(settings_section, "GeminiApiKey", gemini_api_key);
-    config.setValue(settings_section, "GeminiModel", gemini_model.empty() ? "gemini-2.5-flash-lite" : gemini_model);
-    config.setValue(settings_section, "RemoteRequestsPerMinute", std::to_string(remote_requests_per_minute));
+    config.setValue(settings_section, "RemoteApiKey", "");
+    config.setValue(settings_section, "RemoteModel", "");
+    config.setValue(settings_section, "GeminiApiKey", "");
+    config.setValue(settings_section, "GeminiModel", "");
+    config.setValue(settings_section, "RemoteRequestsPerMinute", "0");
     set_bool_setting(config, settings_section, "LLMDownloadsExpanded", llm_downloads_expanded);
     config.setValue(settings_section, "LlmStorageDir", llm_storage_dir);
     config.setValue(settings_section, "VisualModelId", normalize_visual_model_id(visual_model_id));
@@ -833,7 +836,13 @@ bool Settings::load()
     load_basic_settings(load_bool, load_int);
     load_whitelist_settings(load_bool);
     load_custom_llm_settings();
-    load_custom_api_settings();
+    custom_api_endpoints.clear();
+    active_custom_api_id.clear();
+    for (const std::string& id : parse_list(config.getValue("CustomApis", "CustomApiIds", ""))) {
+        config.setValue("CustomApi_" + id, "ApiKey", "");
+    }
+    config.setValue("CustomApis", "ActiveCustomApiId", "");
+    config.setValue("CustomApis", "CustomApiIds", "");
     log_loaded_settings();
 
     return true;
@@ -845,7 +854,7 @@ bool Settings::save()
     save_core_settings();
     save_whitelist_settings();
     save_custom_llms();
-    save_custom_api_endpoints();
+    // Remote API endpoint definitions are intentionally not persisted by OneBoard.
     return config.save(config_path);
 }
 
@@ -858,7 +867,7 @@ LLMChoice Settings::get_llm_choice() const
 
 void Settings::set_llm_choice(LLMChoice choice)
 {
-    llm_choice = choice;
+    llm_choice = is_remote_choice(choice) ? LLMChoice::Local_4b_Gemma : choice;
 }
 
 std::string Settings::get_openai_api_key() const

@@ -302,6 +302,9 @@ FileScanOptions HeadlessAnalysisWorkflowHost::effective_scan_options() const
 std::unique_ptr<ILLMClient> HeadlessAnalysisWorkflowHost::make_llm_client()
 {
     const LLMChoice choice = settings_.get_llm_choice();
+    if (is_remote_choice(choice)) {
+        throw std::runtime_error("Cloud LLM providers are disabled in OneBoard Local File Sort.");
+    }
     const auto handle_local_llm_status = [this](LocalLLMClient::Status status) {
         switch (status) {
         case LocalLLMClient::Status::GpuLowMemoryFallbackToCpu:

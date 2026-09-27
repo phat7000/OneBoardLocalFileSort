@@ -36,17 +36,11 @@
 namespace {
 
 constexpr char kExifPrefix[] = "Exif\0\0";
-constexpr char kDefaultNominatimUrl[] = "https://nominatim.openstreetmap.org/reverse";
 constexpr std::chrono::seconds kMinReverseInterval{1};
 constexpr std::array<uint8_t, 8> kPngSignature = {
     0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A
 };
 constexpr size_t kHeifProbeOutputLimit = 256 * 1024;
-
-std::string reverse_geocoder_user_agent()
-{
-    return "AIFileSorter/" + APP_VERSION.to_numeric_string() + " (reverse-geocoder)";
-}
 
 constexpr uint16_t kTagDateTime = 0x0132;
 constexpr uint16_t kTagExifIfd = 0x8769;
@@ -1063,77 +1057,16 @@ ImageRenameMetadataService::ReverseGeocodeResult ImageRenameMetadataService::rev
     double latitude,
     double longitude)
 {
-    ReverseGeocodeResult result;
-
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        return result;
-    }
-
-    std::ostringstream url_builder;
-    const char* endpoint = std::getenv("AI_FILE_SORTER_NOMINATIM_URL");
-    url_builder << ((endpoint && endpoint[0] != '\0') ? endpoint : kDefaultNominatimUrl)
-                << "?format=jsonv2&addressdetails=1&zoom=10&lat="
-                << std::fixed << std::setprecision(7) << latitude
-                << "&lon=" << std::fixed << std::setprecision(7) << longitude;
-
-    std::string response;
-    curl_easy_setopt(curl, CURLOPT_URL, url_builder.str().c_str());
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 8L);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-    const std::string user_agent = reverse_geocoder_user_agent();
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, user_agent.c_str());
-    configure_tls(curl);
-
-    curl_slist* headers = nullptr;
-    headers = curl_slist_append(headers, "Accept: application/json");
-    if (headers) {
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-    }
-
-    const CURLcode code = curl_easy_perform(curl);
-    long http_status = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
-
-    if (headers) {
-        curl_slist_free_all(headers);
-    }
-    curl_easy_cleanup(curl);
-
-    if (code != CURLE_OK || http_status != 200) {
-        return result;
-    }
-
-    Json::CharReaderBuilder reader_builder;
-    Json::Value root;
-    std::string errors;
-    std::istringstream stream(response);
-    if (!Json::parseFromStream(reader_builder, stream, &root, &errors)) {
-        return result;
-    }
-
-    const auto place_name = pick_place_name(root);
-    result.success = true;
-    if (place_name.has_value()) {
-        const std::string place_slug = slugify(*place_name);
-        if (!place_slug.empty()) {
-            result.place = place_slug;
-        }
-    }
-
-    return result;
+    // GPS coordinates are sensitive. OneBoard v1.0.0 never sends them to a
+    // network reverse-geocoding service.
+    (void)latitude;
+    (void)longitude;
+    return {};
 }
 
 std::optional<std::string> ImageRenameMetadataService::resolve_place_prefix(double latitude,
                                                                              double longitude)
 {
-    // Requirement: no network available -> no place prefix.
-    if (!network_available()) {
-        return std::nullopt;
-    }
-
     const std::string lat_key = format_coord_key(latitude);
     const std::string lon_key = format_coord_key(longitude);
 
@@ -1142,22 +1075,7 @@ std::optional<std::string> ImageRenameMetadataService::resolve_place_prefix(doub
         return cached.place;
     }
 
-    const auto now = std::chrono::steady_clock::now();
-    if (last_geocode_request_.time_since_epoch().count() != 0) {
-        const auto elapsed = now - last_geocode_request_;
-        if (elapsed < kMinReverseInterval) {
-            std::this_thread::sleep_for(kMinReverseInterval - elapsed);
-        }
-    }
-
-    const auto geocode = reverse_geocode(latitude, longitude);
-    last_geocode_request_ = std::chrono::steady_clock::now();
-
-    if (geocode.success) {
-        upsert_cache(lat_key, lon_key, geocode.place);
-    }
-
-    return geocode.place;
+    return std::nullopt;
 }
 
 std::string ImageRenameMetadataService::enrich_suggested_name(

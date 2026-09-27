@@ -199,6 +199,41 @@ std::string join_for_settings(const std::vector<std::string>& values)
 
 } // namespace
 
+TEST_CASE("OneBoard production settings always select local inference") {
+    TempDir temp;
+    EnvVarGuard config_guard("AI_FILE_SORTER_CONFIG_DIR", temp.path().string());
+
+    Settings seed;
+    const std::filesystem::path config_path =
+        std::filesystem::path(seed.get_config_dir()) / "config.ini";
+    QSettings config(QString::fromStdString(config_path.string()), QSettings::IniFormat);
+    config.beginGroup("Settings");
+    config.setValue("LLMChoice", "Remote_OpenAI");
+    config.setValue("RemoteApiKey", "must-not-load");
+    config.setValue("GeminiApiKey", "must-not-load");
+    config.endGroup();
+    config.sync();
+
+    Settings loaded;
+    REQUIRE(loaded.load());
+    CHECK(loaded.get_llm_choice() == LLMChoice::Local_4b_Gemma);
+    CHECK(loaded.get_openai_api_key().empty());
+    CHECK(loaded.get_gemini_api_key().empty());
+
+    loaded.set_llm_choice(LLMChoice::Remote_Gemini);
+    CHECK(loaded.get_llm_choice() == LLMChoice::Local_4b_Gemma);
+    loaded.set_llm_choice(LLMChoice::Remote_Custom);
+    CHECK(loaded.get_llm_choice() == LLMChoice::Local_4b_Gemma);
+    REQUIRE(loaded.save());
+
+    QSettings saved(QString::fromStdString(config_path.string()), QSettings::IniFormat);
+    saved.beginGroup("Settings");
+    CHECK(saved.value("LLMChoice").toString() == QStringLiteral("Local_4b_Gemma"));
+    CHECK(saved.value("RemoteApiKey").toString().isEmpty());
+    CHECK(saved.value("GeminiApiKey").toString().isEmpty());
+    saved.endGroup();
+}
+
 TEST_CASE("WhitelistStore seeds built-in presets when empty") {
     TempDir base_dir;
     WhitelistStore store(base_dir.path().string());

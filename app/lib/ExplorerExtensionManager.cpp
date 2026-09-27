@@ -17,8 +17,6 @@
 
 namespace {
 
-constexpr std::wstring_view kDownloadUrl = L"https://filesorter.app/windows-explorer-extension/";
-
 #ifdef _WIN32
 
 constexpr std::wstring_view kSettingsKey = L"Software\\HFStudio\\AIFileSorter\\ExplorerExtension";
@@ -199,14 +197,10 @@ bool ExplorerExtensionManager::can_open_activity_window() const
 
 bool ExplorerExtensionManager::open_install_page(std::string* error) const
 {
-#ifdef _WIN32
-    return shell_execute(kDownloadUrl, std::wstring_view{}, std::wstring_view{}, error);
-#else
     if (error) {
-        *error = "The Windows Explorer extension is only available on Windows.";
+        *error = "The upstream Windows Explorer extension is disabled in OneBoard v1.0.0.";
     }
     return false;
-#endif
 }
 
 bool ExplorerExtensionManager::open_settings(std::string* error) const

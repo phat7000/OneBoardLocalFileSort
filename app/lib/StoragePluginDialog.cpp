@@ -250,7 +250,7 @@ void StoragePluginDialog::import_plugin_archive()
         this,
         dialog_tr("Install Storage Plugin"),
         QString(),
-        dialog_tr("AI File Sorter plugins (*.aifsplugin *.zip);;All files (*)"));
+        dialog_tr("OneBoard Local File Sort plugins (*.aifsplugin *.zip);;All files (*)"));
     if (archive_path.isEmpty()) {
         return;
     }
