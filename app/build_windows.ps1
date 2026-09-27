@@ -45,9 +45,9 @@ $variantDefinitions = @{
     Standalone = [pscustomobject]@{
         Name = "Standalone"
         BuildDir = (Join-Path $appDir "build-windows-standalone")
-        UpdateMode = "NOTIFY_ONLY"
+        UpdateMode = "DISABLED"
         PackageKind = "STANDALONE"
-        Description = "Notification-only updates"
+        Description = "No update checks"
     }
 }
 
@@ -584,10 +584,10 @@ function Resolve-OutputExecutable {
     $binDir = Join-Path $appDir "bin"
     $buildConfigDir = Join-Path $BuildDir $ConfigurationName
     $outputCandidates = @(
-        (Join-Path $buildConfigDir "aifilesorter.exe"),
-        (Join-Path $BuildDir "aifilesorter.exe"),
-        (Join-Path (Join-Path $binDir $ConfigurationName) "aifilesorter.exe"),
-        (Join-Path $binDir "aifilesorter.exe")
+        (Join-Path $buildConfigDir "OneBoardLocalFileSort.exe"),
+        (Join-Path $BuildDir "OneBoardLocalFileSort.exe"),
+        (Join-Path (Join-Path $binDir $ConfigurationName) "OneBoardLocalFileSort.exe"),
+        (Join-Path $binDir "OneBoardLocalFileSort.exe")
     )
 
     foreach ($candidate in $outputCandidates) {
@@ -844,17 +844,13 @@ if ($EnableLiveLlmTests) {
 }
 
 if ($BuildTests -and -not $PSBoundParameters.ContainsKey("Variants")) {
-    Write-Output "Tests requested; limiting default Windows build variants to Standard. Pass -Variants explicitly to build additional variants."
-    $Variants = @("Standard")
+    Write-Output "Tests requested; limiting default Windows build variants to Standalone. Pass -Variants explicitly to build additional variants."
+    $Variants = @("Standalone")
 }
 
 $selectedVariantNames = @($Variants | Select-Object -Unique)
 $selectedVariants = foreach ($variantName in $selectedVariantNames) {
     $variantDefinitions[$variantName]
-}
-
-if ($BuildTests -and ($selectedVariantNames -notcontains "Standard")) {
-    throw "-BuildTests, -EnableLiveLlmTests, and -RunTests currently require the Standard variant because tests are only configured in the auto-update build."
 }
 
 if (-not $VcpkgRoot) {
@@ -1024,8 +1020,8 @@ foreach ($variant in $selectedVariants) {
     Assert-SufficientConfigureDiskSpace -Path $variant.BuildDir -Label "$($variant.Name) build directory"
     Assert-SufficientConfigureDiskSpace -Path $sharedVcpkgInstalledDir -Label "shared vcpkg install directory"
 
-    $enableTests = $BuildTests -and $variant.Name -eq "Standard"
-    $enableLiveLlmTests = $EnableLiveLlmTests -and $variant.Name -eq "Standard"
+    $enableTests = $BuildTests -and $variant.Name -eq "Standalone"
+    $enableLiveLlmTests = $EnableLiveLlmTests -and $variant.Name -eq "Standalone"
     $configureArgs = Get-ConfigureArguments -Variant $variant `
                                             -ToolchainFile $toolchainFile `
                                             -EnableTests:$enableTests `
@@ -1056,11 +1052,11 @@ foreach ($variant in $selectedVariants) {
     }
 
     if ($enableTests) {
-        Write-Output "Building unit tests in the Standard variant..."
+        Write-Output "Building unit tests in the Standalone variant..."
         $testBuildArgs = @("--build", $variant.BuildDir, "--config", $Configuration, "--target", "ai_file_sorter_tests", "--parallel", $Parallel)
         & $cmakeExe @testBuildArgs
         if ($LASTEXITCODE -ne 0) {
-            throw "Failed to build unit tests in the Standard variant."
+            throw "Failed to build unit tests in the Standalone variant."
         }
 
         if ($RunTests) {
@@ -1071,7 +1067,7 @@ foreach ($variant in $selectedVariants) {
 
             Push-Location $variant.BuildDir
             try {
-                Write-Output "Running ctest in the Standard variant..."
+                Write-Output "Running ctest in the Standalone variant..."
                 & $ctestExe "-C" $Configuration "--output-on-failure" "-j" $Parallel
                 if ($LASTEXITCODE -ne 0) {
                     throw "ctest reported failures."

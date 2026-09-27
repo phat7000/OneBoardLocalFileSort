@@ -12,7 +12,7 @@ option(AI_FILE_SORTER_ENABLE_LIVE_LLM_TESTS
     "Register opt-in headless tests that run real local LLM models against real files." OFF)
 option(AI_FILE_SORTER_REQUIRE_EMBEDDED_PDF_BACKEND
     "Require vendored PDFium for PDF extraction instead of silently falling back to external CLI tools." ON)
-set(AI_FILE_SORTER_UPDATE_MODE "PLATFORM_DEFAULT" CACHE STRING
+set(AI_FILE_SORTER_UPDATE_MODE "DISABLED" CACHE STRING
     "Updater behavior for this build: PLATFORM_DEFAULT, AUTO_INSTALL, NOTIFY_ONLY, or DISABLED")
 set_property(CACHE AI_FILE_SORTER_UPDATE_MODE PROPERTY STRINGS
     PLATFORM_DEFAULT AUTO_INSTALL NOTIFY_ONLY DISABLED)
@@ -21,7 +21,7 @@ set(AI_FILE_SORTER_WINDOWS_PACKAGE_KIND "STANDARD" CACHE STRING
 set_property(CACHE AI_FILE_SORTER_WINDOWS_PACKAGE_KIND PROPERTY STRINGS
     STANDARD MSIX STANDALONE)
 set(AI_FILE_SORTER_STORAGE_PLUGIN_CATALOG_URL
-    "https://filesorter.app/download/plugins/storage/catalog.json"
+    ""
     CACHE STRING
     "Default remote storage plugin catalog URL baked into the application build.")
 
@@ -56,11 +56,11 @@ else()
     set(AIFS_VCPKG_INSTALLED_ROOT "${CMAKE_BINARY_DIR}/vcpkg_installed")
 endif()
 
-message(STATUS "AI File Sorter updater mode: ${_aifs_effective_update_mode}")
+message(STATUS "OneBoard Local File Sort updater mode: ${_aifs_effective_update_mode}")
 
 set(_aifs_effective_windows_package_kind "")
 set(_aifs_windows_enable_starter FALSE)
-set(_aifs_windows_main_output_name "aifilesorter")
+set(_aifs_windows_main_output_name "OneBoardLocalFileSort")
 if(WIN32)
     set(_aifs_effective_windows_package_kind "${AI_FILE_SORTER_WINDOWS_PACKAGE_KIND}")
     set(_aifs_allowed_windows_package_kinds STANDARD MSIX STANDALONE)
@@ -75,10 +75,10 @@ if(WIN32)
 
     if(NOT _aifs_effective_windows_package_kind STREQUAL "MSIX")
         set(_aifs_windows_enable_starter TRUE)
-        set(_aifs_windows_main_output_name "aifilesorter-bin")
+        set(_aifs_windows_main_output_name "OneBoardLocalFileSort-bin")
     endif()
 
-    message(STATUS "AI File Sorter Windows package kind: ${_aifs_effective_windows_package_kind}")
+    message(STATUS "OneBoard Local File Sort Windows package kind: ${_aifs_effective_windows_package_kind}")
 endif()
 
 include(CheckSymbolExists)
@@ -118,7 +118,7 @@ function(aifs_find_required_package package_name)
 
     if(WIN32)
         message(FATAL_ERROR
-            "Could not find package '${package_name}'. On Windows, AI File Sorter source/test builds "
+            "Could not find package '${package_name}'. On Windows, OneBoard Local File Sort source/test builds "
             "expect third-party dependencies from the vcpkg manifest in app/vcpkg.json. "
             "Re-run CMake from a Visual Studio Developer PowerShell with a writable vcpkg clone and your Qt 6 MSVC kit, for example:\n"
             "  $env:VCPKG_ROOT = \"D:/path/to/vcpkg\"\n"
@@ -662,6 +662,7 @@ file(GLOB APP_HEADER_SOURCES CONFIGURE_DEPENDS
 )
 set(APP_SOURCES ${APP_MAIN_SOURCE} ${APP_LIB_SOURCES})
 set(AIFS_TRANSLATION_TS_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/i18n/aifilesorter_vi.ts"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/i18n/aifilesorter_fr.ts"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/i18n/aifilesorter_de.ts"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/i18n/aifilesorter_hi.ts"
@@ -736,13 +737,10 @@ aifs_add_translation_resources(aifilesorter)
 # Resources (equivalent to rcc generation in Makefile)
 set(AIFS_IMAGE_RESOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/logo.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/hf_logo.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/app_icon_64.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/app_icon_128.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/app_icon_256.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/app_icon_256_arrows.png"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/app_icon_256.svg"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/app_icon_arrows.svg"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/icon_16x16.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/icon_32x32.png"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/images/icon_64x64.png"
@@ -754,69 +752,13 @@ set(AIFS_IMAGE_RESOURCE_FILES
 
 set(AIFS_HELP_RESOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_da.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_de.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_es.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_fi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_fr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_hi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_is.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_it.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_ko.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_nb.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_nl.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_sv.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_tr.md"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_vi.md"
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_da.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_de.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_es.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_fi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_fr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_hi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_is.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_it.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_ko.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_nb.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_nl.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_sv.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_tr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_zh_cn.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_zh_cn.md"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/help/quick_start_windows_vi.md"
 )
 
 set(AIFS_WHATS_NEW_RESOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.2.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_da.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_de.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_es.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_fi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_fr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_hi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_is.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_it.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_ko.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_nb.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_nl.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_sv.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_tr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.1_zh_cn.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_da.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_de.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_es.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_fi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_fr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_hi.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_is.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_it.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_ko.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_nb.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_nl.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_sv.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_tr.md"
-    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.9.0_zh_cn.md"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/whats_new/1.0.0.md"
 )
 
 set(APP_RESOURCE_FILES
@@ -1067,7 +1009,7 @@ if(WIN32 AND _aifs_windows_enable_starter)
         "${CMAKE_CURRENT_SOURCE_DIR}/lib/WindowsCudaProbe.cpp"
     )
     set_target_properties(${STARTER_TARGET} PROPERTIES
-        OUTPUT_NAME "aifilesorter"
+        OUTPUT_NAME "OneBoardLocalFileSort"
     )
     aifs_apply_update_mode(${STARTER_TARGET})
     target_include_directories(${STARTER_TARGET} PRIVATE

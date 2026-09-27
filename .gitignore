@@ -81,6 +81,8 @@ msix/
 package_msix.ps1
 appcert-AIFileSorter.xml
 msix-layout/
+!/packaging/windows/*.nsi
+/release/
 
 # References
 # includePaths.txt
