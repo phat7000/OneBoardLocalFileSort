@@ -26,7 +26,7 @@ struct QuickStartLanguageSuffix {
     const char* suffix;
 };
 
-constexpr std::array<QuickStartLanguageSuffix, 14> kQuickStartLanguageSuffixes{{
+constexpr std::array<QuickStartLanguageSuffix, 15> kQuickStartLanguageSuffixes{{
     {Language::Dutch, "_nl"},
     {Language::Swedish, "_sv"},
     {Language::Icelandic, "_is"},
@@ -41,16 +41,17 @@ constexpr std::array<QuickStartLanguageSuffix, 14> kQuickStartLanguageSuffixes{{
     {Language::Turkish, "_tr"},
     {Language::Korean, "_ko"},
     {Language::SimplifiedChinese, "_zh_cn"},
+    {Language::Vietnamese, "_vi"},
 }};
 
 QString support_page_url_string()
 {
-    return QStringLiteral("https://filesorter.app/donate/");
+    return QStringLiteral("https://oneboard.io.vn");
 }
 
 QString faq_page_url_string()
 {
-    return QStringLiteral("https://filesorter.app/faq/");
+    return QStringLiteral("https://github.com/phat7000/OneBoardLocalFileSort");
 }
 
 QString quick_start_fallback_markdown()
@@ -174,13 +175,13 @@ void MainAppHelpActions::show_about(QWidget* parent)
     version_label->setAlignment(Qt::AlignHCenter);
     about_layout->addWidget(version_label);
 
-    auto* copyright_label =
-        new QLabel(QStringLiteral("Copyright 2026 HF Studio. All rights reserved."), about_tab);
+    auto* copyright_label = new QLabel(
+        QStringLiteral("OneBoard independent distribution — see License and Credits."), about_tab);
     copyright_label->setAlignment(Qt::AlignHCenter);
     about_layout->addWidget(copyright_label);
 
     auto* website_label = new QLabel(QStringLiteral(
-        "<a href=\"https://www.filesorter.app\">Visit the Website</a>"), about_tab);
+        "<a href=\"https://oneboard.io.vn\">Visit the OneBoard Website</a>"), about_tab);
     website_label->setOpenExternalLinks(true);
     website_label->setAlignment(Qt::AlignHCenter);
     about_layout->addWidget(website_label);
@@ -193,22 +194,16 @@ void MainAppHelpActions::show_about(QWidget* parent)
     auto* credits_layout = new QVBoxLayout(credits_tab);
     credits_layout->setSpacing(8);
 
-    if (QPixmap brand_logo_pix(QStringLiteral(":/dev/hfstudio/AIFileSorter/images/hf_logo.png"));
-        !brand_logo_pix.isNull()) {
-        auto* brand_logo = new QLabel(credits_tab);
-        brand_logo->setAlignment(Qt::AlignHCenter);
-        brand_logo->setPixmap(
-            brand_logo_pix.scaled(160, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-        credits_layout->addWidget(brand_logo);
-    }
-
-    auto* author_label = new QLabel(QStringLiteral("Author: hyperfield"), credits_tab);
+    auto* author_label = new QLabel(
+        QStringLiteral("Based on AI File Sorter by hyperfield and upstream contributors"), credits_tab);
     author_label->setAlignment(Qt::AlignHCenter);
     credits_layout->addWidget(author_label);
 
     auto* author_details = new QLabel(QStringLiteral(
-        "Author's brand name is <a href=\"https://hfstudio.dev\">HF Studio</a>.<br>"
-        "Source code on GitHub is <a href=\"https://github.com/hyperfield/ai-file-sorter\">here</a>."), credits_tab);
+        "OneBoard Local File Sort is an independent modified distribution and is not endorsed by "
+        "or affiliated with the upstream project.<br><br>"
+        "<a href=\"https://github.com/hyperfield/ai-file-sorter\">Upstream source</a> · "
+        "<a href=\"https://github.com/phat7000/OneBoardLocalFileSort\">OneBoard source</a>"), credits_tab);
     author_details->setOpenExternalLinks(true);
     author_details->setAlignment(Qt::AlignHCenter);
     author_details->setWordWrap(true);
@@ -255,10 +250,10 @@ void MainAppHelpActions::show_agpl_info(QWidget* parent)
     auto* layout = new QVBoxLayout(&dialog);
 
     auto* summary = new QLabel(QObject::tr(
-        "AI File Sorter is distributed under the GNU Affero General Public License v3.0."
+        "OneBoard Local File Sort is distributed under the GNU Affero General Public License v3.0."
         "<br><br>"
-        "You can access the full source code at "
-        "<a href=\"https://github.com/hyperfield/ai-file-sorter\">github.com/hyperfield/ai-file-sorter</a>."
+        "You can access the complete corresponding OneBoard source code at "
+        "<a href=\"https://github.com/phat7000/OneBoardLocalFileSort\">github.com/phat7000/OneBoardLocalFileSort</a>."
         "<br><br>"
         "A full copy of the license is provided with this application and available online at "
         "<a href=\"https://www.gnu.org/licenses/agpl-3.0.html\">gnu.org</a>."), &dialog);

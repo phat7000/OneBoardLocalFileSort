@@ -617,6 +617,7 @@ UiTranslator::Dependencies MainAppUiBuilder::build_translator_dependencies(MainA
             app.spanish_action,
             app.turkish_action,
             app.korean_action,
+            app.vietnamese_action,
             app.about_action,
             app.quick_start_action,
             app.faq_action,
@@ -639,7 +640,8 @@ UiTranslator::Dependencies MainAppUiBuilder::build_translator_dependencies(MainA
             app.danish_action,
             app.spanish_action,
             app.turkish_action,
-            app.korean_action},
+            app.korean_action,
+            app.vietnamese_action},
         .category_language = UiTranslator::CategoryLanguageControls{
             app.category_language_group,
             &app.category_language_actions_},
@@ -815,6 +817,10 @@ void MainAppUiBuilder::build_settings_menu(MainApp& app) {
     app.turkish_action->setCheckable(true);
     app.turkish_action->setData(static_cast<int>(Language::Turkish));
     app.language_group->addAction(app.turkish_action);
+    app.vietnamese_action = app.language_menu->addAction(QString());
+    app.vietnamese_action->setCheckable(true);
+    app.vietnamese_action->setData(static_cast<int>(Language::Vietnamese));
+    app.language_group->addAction(app.vietnamese_action);
 
     QObject::connect(app.language_group, &QActionGroup::triggered, &app, [&app](QAction* action) {
         if (!action) {
@@ -913,6 +919,10 @@ void MainAppUiBuilder::build_extensions_menu(MainApp& app) {
                      &app,
                      &MainApp::refresh_windows_explorer_extension_actions);
     app.refresh_windows_explorer_extension_actions();
+    // Preserve the object graph expected by translation/state code while keeping
+    // the upstream extension workflow unavailable in normal OneBoard UI.
+    app.extensions_menu->setEnabled(false);
+    app.extensions_menu->menuAction()->setVisible(false);
 }
 
 void MainAppUiBuilder::build_plugins_menu(MainApp& app) {

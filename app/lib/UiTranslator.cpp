@@ -90,8 +90,9 @@ constexpr auto kActionDanish = QT_TRANSLATE_NOOP("UiTranslator", "&Danish");
 constexpr auto kActionSpanish = QT_TRANSLATE_NOOP("UiTranslator", "&Spanish");
 constexpr auto kActionTurkish = QT_TRANSLATE_NOOP("UiTranslator", "&Turkish");
 constexpr auto kActionKorean = QT_TRANSLATE_NOOP("UiTranslator", "&Korean");
+constexpr auto kActionVietnamese = QT_TRANSLATE_NOOP("UiTranslator", "&Vietnamese");
 constexpr auto kActionAboutAiFileSorter =
-    QT_TRANSLATE_NOOP("UiTranslator", "&About AI File Sorter");
+    QT_TRANSLATE_NOOP("UiTranslator", "&About OneBoard Local File Sort");
 constexpr auto kActionQuickStartGuide =
     QT_TRANSLATE_NOOP("UiTranslator", "&Quick Start Guide");
 constexpr auto kActionFaq = QT_TRANSLATE_NOOP("UiTranslator", "&FAQ");
@@ -157,6 +158,7 @@ QAction* shared_interface_language_action(const UiTranslator::Dependencies& deps
     case CategoryLanguage::Spanish: return deps.actions.spanish_action;
     case CategoryLanguage::Swedish: return deps.actions.swedish_action;
     case CategoryLanguage::Turkish: return deps.actions.turkish_action;
+    case CategoryLanguage::Vietnamese: return deps.actions.vietnamese_action;
     default: return nullptr;
     }
 }
@@ -185,7 +187,7 @@ void UiTranslator::retranslate_all(const State& state) const
 
 void UiTranslator::translate_window_title() const
 {
-    deps_.window.setWindowTitle(QStringLiteral("AI File Sorter"));
+    deps_.window.setWindowTitle(QStringLiteral("OneBoard Local File Sort"));
 }
 
 void UiTranslator::translate_primary_controls(bool analysis_in_progress) const
@@ -398,6 +400,7 @@ void UiTranslator::translate_menus_and_actions() const
         {deps_.actions.spanish_action, kActionSpanish},
         {deps_.actions.turkish_action, kActionTurkish},
         {deps_.actions.korean_action, kActionKorean},
+        {deps_.actions.vietnamese_action, kActionVietnamese},
         {deps_.actions.about_action, kActionAboutAiFileSorter},
         {deps_.actions.quick_start_action, kActionQuickStartGuide},
         {deps_.actions.faq_action, kActionFaq},
@@ -519,6 +522,9 @@ void UiTranslator::update_language_group_checks(Language configured) const
     }
     if (deps_.language.korean_action) {
         deps_.language.korean_action->setChecked(configured == Language::Korean);
+    }
+    if (deps_.language.vietnamese_action) {
+        deps_.language.vietnamese_action->setChecked(configured == Language::Vietnamese);
     }
 }
 

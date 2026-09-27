@@ -1,10 +1,11 @@
 #include <windows.h>
 
-#define VER_COMPANY      "hyperfield"
-#define VER_FILEDESC     "AI File Sorter"
-#define VER_PRODUCT      "AI File Sorter"
+#define VER_COMPANY      "OneBoard"
+#define VER_FILEDESC     "OneBoard Local File Sort"
+#define VER_PRODUCT      "OneBoard Local File Sort"
 #define VER_FILEVER      @APP_VER_MAJOR@,@APP_VER_MINOR@,@APP_VER_PATCH@,0
-#define VER_FILEVER_STR  "@APP_VER_MAJOR@.@APP_VER_MINOR@.@APP_VER_PATCH@\0"
+#define VER_FILEVER_STR  "@APP_VER_MAJOR@.@APP_VER_MINOR@.@APP_VER_PATCH@.0\0"
+#define VER_PRODUCTVER_STR "@APP_VER_MAJOR@.@APP_VER_MINOR@.@APP_VER_PATCH@\0"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION VER_FILEVER
@@ -23,8 +24,8 @@ BEGIN
             VALUE "FileDescription", VER_FILEDESC "\0"
             VALUE "FileVersion", VER_FILEVER_STR
             VALUE "ProductName", VER_PRODUCT "\0"
-            VALUE "ProductVersion", VER_FILEVER_STR
-            VALUE "OriginalFilename", "AIFileSorter.exe\0"
+            VALUE "ProductVersion", VER_PRODUCTVER_STR
+            VALUE "OriginalFilename", "OneBoardLocalFileSort.exe\0"
         END
     END
     BLOCK "VarFileInfo"

@@ -89,7 +89,7 @@ bool SingleInstanceCoordinator::acquire_primary_instance()
         primary_instance_ = false;
         if (!notify_primary_instance()) {
             qWarning().noquote()
-                << "Another AI File Sorter instance appears to be running,"
+                << "Another OneBoard Local File Sort instance appears to be running,"
                 << "but the activation request could not be delivered.";
         }
         return false;

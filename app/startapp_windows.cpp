@@ -503,7 +503,7 @@ QString resolveExecutableName(const QString& baseDir, const QString& currentExec
         QStringLiteral(AIFS_MAIN_EXECUTABLE_NAME),
         QStringLiteral("aifilesorter-bin.exe"),
         QStringLiteral("aifilesorter.exe"),
-        QStringLiteral("AI File Sorter.exe")
+        QStringLiteral("OneBoard Local File Sort.exe")
     };
 
     const QString currentAbsolutePath = QFileInfo(currentExecutablePath).absoluteFilePath();

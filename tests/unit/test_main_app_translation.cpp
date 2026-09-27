@@ -694,80 +694,47 @@ TEST_CASE("Quick Start guide content follows the selected app language")
     TranslationManager::instance().set_language(Language::English);
     const QString english = MainAppHelpActions::quick_start_markdown_for_language(
         TranslationManager::instance().current_language());
-    REQUIRE(english.contains(QStringLiteral("# Quick Start Guide")));
-    REQUIRE(english.contains(QStringLiteral("Safe First Run")));
-    REQUIRE(english.contains(QStringLiteral("small test folder")));
-    REQUIRE(english.contains(QStringLiteral("Choose a Folder")));
-    REQUIRE(english.contains(QStringLiteral("auto-approval")));
+    REQUIRE(english.contains(QStringLiteral("# OneBoard Local File Sort")));
+    REQUIRE(english.contains(QStringLiteral("Quick Start")));
+    REQUIRE(english.contains(QStringLiteral("small, disposable test folder")));
+    REQUIRE(english.contains(QStringLiteral("Gemma 3 4B IT")));
+    REQUIRE(english.contains(QStringLiteral("Review every proposed")));
 #ifdef _WIN32
-    REQUIRE(english.contains(QStringLiteral("Windows Notes")));
-    REQUIRE(english.contains(QStringLiteral("Windows Explorer Extension")));
+    REQUIRE(english.contains(QStringLiteral("Windows notes")));
+    REQUIRE(english.contains(QStringLiteral("Windows Explorer extension")));
 #else
     REQUIRE_FALSE(english.contains(QStringLiteral("Windows Explorer Extension")));
 #endif
 
-    TranslationManager::instance().set_language(Language::French);
-    const QString french = MainAppHelpActions::quick_start_markdown_for_language(
+    const std::vector<Language> quick_start_fallback_languages = {
+        Language::French,
+        Language::German,
+        Language::Hindi,
+        Language::Italian,
+        Language::Spanish,
+        Language::Turkish,
+        Language::Korean,
+        Language::SimplifiedChinese,
+        Language::Dutch,
+        Language::Swedish,
+        Language::Icelandic,
+        Language::Norwegian,
+        Language::Finnish,
+        Language::Danish,
+    };
+    for (const Language language : quick_start_fallback_languages) {
+        INFO("Language enum value: " << static_cast<int>(language));
+        REQUIRE(MainAppHelpActions::quick_start_markdown_for_language(language) == english);
+    }
+
+    TranslationManager::instance().set_language(Language::Vietnamese);
+    const QString vietnamese = MainAppHelpActions::quick_start_markdown_for_language(
         TranslationManager::instance().current_language());
-    REQUIRE(french.contains(QStringLiteral("# Guide de demarrage rapide")));
-    REQUIRE(french.contains(QStringLiteral("Choisir un dossier")));
+    REQUIRE(vietnamese.contains(QStringLiteral("# Bắt đầu nhanh với OneBoard Local File Sort")));
+    REQUIRE(vietnamese.contains(QStringLiteral("AI cục bộ")));
+    REQUIRE(vietnamese.contains(QStringLiteral("thư mục thử nghiệm")));
 #ifdef _WIN32
-    REQUIRE(french.contains(QStringLiteral("# Notes Windows")));
-    REQUIRE_FALSE(french.contains(QStringLiteral("# Windows Notes")));
-#endif
-
-    TranslationManager::instance().set_language(Language::Korean);
-    const QString korean = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(korean.contains(QStringLiteral("# 빠른 시작 가이드")));
-    REQUIRE(korean.contains(QStringLiteral("폴더 선택")));
-#ifdef _WIN32
-    REQUIRE(korean.contains(QStringLiteral("# Windows 참고 사항")));
-#endif
-
-    TranslationManager::instance().set_language(Language::Hindi);
-    const QString hindi = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(hindi.contains(QStringLiteral("# त्वरित प्रारंभ मार्गदर्शिका")));
-    REQUIRE(hindi.contains(QStringLiteral("फ़ोल्डर चुनें")));
-
-    TranslationManager::instance().set_language(Language::Swedish);
-    const QString swedish = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(swedish.contains(QStringLiteral("# Snabbstartguide")));
-    REQUIRE(swedish.contains(QStringLiteral("Valj en mapp")));
-
-    TranslationManager::instance().set_language(Language::Icelandic);
-    const QString icelandic = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(icelandic.contains(QStringLiteral("# Flytileidarvisir")));
-    REQUIRE(icelandic.contains(QStringLiteral("Veldu moppu")));
-
-    TranslationManager::instance().set_language(Language::Norwegian);
-    const QString norwegian = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(norwegian.contains(QStringLiteral("# Hurtigstartguide")));
-    REQUIRE(norwegian.contains(QStringLiteral("Velg en mappe")));
-
-    TranslationManager::instance().set_language(Language::Finnish);
-    const QString finnish = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(finnish.contains(QStringLiteral("# Pika-aloitusopas")));
-    REQUIRE(finnish.contains(QStringLiteral("Valitse kansio")));
-
-    TranslationManager::instance().set_language(Language::Danish);
-    const QString danish = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(danish.contains(QStringLiteral("# Hurtig startvejledning")));
-    REQUIRE(danish.contains(QStringLiteral("Vaelg en mappe")));
-
-    TranslationManager::instance().set_language(Language::SimplifiedChinese);
-    const QString simplified_chinese = MainAppHelpActions::quick_start_markdown_for_language(
-        TranslationManager::instance().current_language());
-    REQUIRE(simplified_chinese.contains(QStringLiteral("# 快速入门指南")));
-    REQUIRE(simplified_chinese.contains(QStringLiteral("选择一个文件夹")));
-#ifdef _WIN32
-    REQUIRE(simplified_chinese.contains(QStringLiteral("# Windows 说明")));
+    REQUIRE(vietnamese.contains(QStringLiteral("Lưu ý cho Windows")));
 #endif
 }
 
@@ -786,8 +753,7 @@ TEST_CASE("What's New content is packaged for the current app version")
     REQUIRE(WhatsNewContent::markdown_for_version(version, Language::English) == markdown);
 
     const QString french = WhatsNewContent::markdown_for_version(version, Language::French);
-    REQUIRE(french.contains(QStringLiteral("Points forts")));
-    REQUIRE_FALSE(french.contains(QStringLiteral("Highlights")));
+    REQUIRE(french == markdown);
 
     const std::vector<Language> localized_languages = {
         Language::French,
@@ -810,8 +776,10 @@ TEST_CASE("What's New content is packaged for the current app version")
         INFO("Language enum value: " << static_cast<int>(language));
         const QString localized = WhatsNewContent::markdown_for_version(version, language);
         REQUIRE_FALSE(localized.isEmpty());
-        REQUIRE(localized != markdown);
+        REQUIRE(localized == markdown);
     }
+
+    REQUIRE(WhatsNewContent::markdown_for_version(version, Language::Vietnamese) == markdown);
 
     REQUIRE(WhatsNewContent::markdown_for_version(QStringLiteral("bad/version")).isEmpty());
     REQUIRE(WhatsNewContent::markdown_for_version(QStringLiteral("bad/version"), Language::French)
